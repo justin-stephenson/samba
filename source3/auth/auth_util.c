@@ -110,6 +110,7 @@ NTSTATUS make_user_info_map(TALLOC_CTX *mem_ctx,
 {
 	const char *domain;
 	NTSTATUS result;
+    bool guest_info_created = false;
 	bool was_mapped;
 	char *internal_username = NULL;
 
@@ -121,18 +122,32 @@ NTSTATUS make_user_info_map(TALLOC_CTX *mem_ctx,
 	DEBUG(5, ("Mapping user [%s]\\[%s] from workstation [%s]\n",
 		 client_domain, smb_name, workstation_name));
 
-	/*
-	 * We let the auth stack canonicalize, username
-	 * and domain.
-	 */
-	domain = client_domain;
+    if (!was_mapped && internal_username[0] == '\0') {
+            guest_info_created = make_user_info_guest(mem_ctx,
+                                                     remote_address,
+                                                     local_address,
+                                                     service_description,
+                                                     user_info);
+            if (guest_info_created) {
+                    result = NT_STATUS_OK;
+            } else {
+                    result = NT_STATUS_UNSUCCESSFUL;
+            }
+    } else {
+            /*
+             * We let the auth stack canonicalize, username
+             * and domain.
+             */
+            domain = client_domain;
 
-	result = make_user_info(mem_ctx, user_info, smb_name, internal_username,
-				client_domain, domain, workstation_name,
-				remote_address, local_address,
-				service_description, lm_pwd, nt_pwd,
-				lm_interactive_pwd, nt_interactive_pwd,
-				plaintext, password_state);
+            result = make_user_info(mem_ctx, user_info, smb_name, internal_username,
+                                    client_domain, domain, workstation_name,
+                                    remote_address, local_address,
+                                    service_description, lm_pwd, nt_pwd,
+                                    lm_interactive_pwd, nt_interactive_pwd,
+                                    plaintext, password_state);
+    }
+
 	if (NT_STATUS_IS_OK(result)) {
 		/* We have tried mapping */
 		(*user_info)->mapped_state = true;
