@@ -1141,6 +1141,7 @@ static NTSTATUS dcerpc_floor_set_rhs_data(TALLOC_CTX *mem_ctx,
 		return NT_STATUS_OK;
 
 	case EPM_PROTOCOL_IP:
+		/* Windows returns 0.0.0.0 for IPv6 endpoints */
 		if (!is_ipaddress_v4(data)) {
 			data = "0.0.0.0";
 		}

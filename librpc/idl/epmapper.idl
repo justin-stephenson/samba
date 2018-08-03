@@ -87,6 +87,9 @@ interface epmapper
 		uint16 port;
 	} epm_rhs_tcp;
 
+	/* The reference implementation only supported IPv4 at the time, 
+	 * no updates were done to support IPv6 therefore we emulate
+	 * Windows and return 0.0.0.0 for IPv6 endpoints */
 	typedef struct {
 		ipv4address ipaddr;
 	} epm_rhs_ip;
