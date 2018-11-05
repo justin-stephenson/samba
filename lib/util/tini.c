@@ -103,6 +103,7 @@ static bool make_space(char **buf, size_t *buflen, size_t position)
  * Ignores comment lines
  * Ignores empty lines
  * Takes care of continuation lines
+ * Ignores non-whitespace control characters
  * Zaps multiple spaces into one
  */
 
@@ -167,6 +168,15 @@ next_line:
 			 * No continuation, done with the line
 			 */
 			break;
+		}
+
+		/* Skip unexpected control characters */
+		if (c == '\r') {
+			continue;
+		}
+
+		if ((!isprint(c)) && (!isspace(c))) {
+			continue;
 		}
 
 		if ((pos > 0) && c_isspace(buf[pos-1]) && c_isspace(c)) {
@@ -300,6 +310,9 @@ bool tini_parse(FILE *f,
 
 		switch(buf[0]) {
 		case 0:
+			continue;
+			break;
+		case ';':
 			continue;
 			break;
 		case '[':
