@@ -45,20 +45,23 @@ static void internal_obsolete_keytab_test(int num_principals, int num_kvnos,
 		kt_entry.principal = principals[i];
 		for (j=0; j<num_kvnos; j++) {
 			kt_entry.vno = j+1;
+			/* A keytab entry added to a keytab of type MEMORY
+			 * gets added to the beginning of the table, not the end
+			 */
 			krb5_kt_add_entry(krb5_ctx, keytab, &kt_entry);
 		}
 	}
 
 	code = krb5_kt_start_seq_get(krb5_ctx, keytab, &cursor);
 	assert_int_equal(code, 0);
-	for (i=0; i<num_principals; i++) {
+	for (i=num_principals-1; i>=0; i--) {
 		expect_princ_name[4] = (char)i+48;
-		for (j=0; j<num_kvnos; j++) {
+		for (j=num_kvnos; j>0; j--) {
 			char *unparsed_name;
 			code = krb5_kt_next_entry(krb5_ctx, keytab,
 						  &kt_entry, &cursor);
 			assert_int_equal(code, 0);
-			assert_int_equal(kt_entry.vno, j+1);
+			assert_int_equal(kt_entry.vno, j);
 			krb5_unparse_name(krb5_ctx, kt_entry.principal,
 					  &unparsed_name);
 			assert_string_equal(expect_princ_name, unparsed_name);
@@ -69,10 +72,9 @@ static void internal_obsolete_keytab_test(int num_principals, int num_kvnos,
 						num_principals, principals,
 						kvno, &found_previous,
 						&error_str);
-
 	code = krb5_kt_start_seq_get(krb5_ctx, keytab, &cursor);
 	assert_int_equal(code, 0);
-	for (i=0; i<num_principals; i++) {
+	for (i=num_principals-1; i>=0; i--) {
 		char *unparsed_name;
 		expect_princ_name[4] = (char)i+48;
 		code = krb5_kt_next_entry(krb5_ctx, keytab, &kt_entry, &cursor);
