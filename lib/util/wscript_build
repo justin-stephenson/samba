@@ -234,3 +234,9 @@ else:
                      deps='cmocka replace samba-util',
                      local_include=False,
                      install=False)
+
+    bld.SAMBA_BINARY('tini_parse',
+                     source='tests/tini_parse.c',
+                     deps='cmocka replace samba-util',
+                     local_include=False,
+                     install=False)
