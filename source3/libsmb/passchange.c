@@ -40,12 +40,21 @@ NTSTATUS remote_password_change(const char *remote_machine,
 	struct rpc_pipe_client *pipe_hnd = NULL;
 	NTSTATUS result;
 	bool pass_must_change = False;
+	int rc = 0;
+	char *tmp_err = NULL;
 
 	*err_str = NULL;
 
 	result = cli_connect_nb(remote_machine, NULL, 0, 0x20, NULL,
 				SMB_SIGNING_IPC_DEFAULT, 0, &cli);
 	if (!NT_STATUS_IS_OK(result)) {
+		if (NT_STATUS_EQUAL(result, NT_STATUS_NOT_SUPPORTED)) {
+			rc = asprintf(&tmp_err, "NetBIOS support disabled, unable to connect");
+			if (rc != -1) {
+				*err_str = tmp_err;
+			}
+		}
+
 		if (asprintf(err_str, "Unable to connect to SMB server on "
 			 "machine %s. Error was : %s.\n",
 			 remote_machine, nt_errstr(result))==-1) {
